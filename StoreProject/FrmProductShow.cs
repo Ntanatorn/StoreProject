@@ -72,25 +72,32 @@ namespace StoreProject
 
                         lvAllProduct.Columns.Add("รูปภาพ", 100, HorizontalAlignment.Left);
                         lvAllProduct.Columns.Add("รหัสสินค้า", 100, HorizontalAlignment.Left);
-                        lvAllProduct.Columns.Add("ชื่อสินค้า", 240, HorizontalAlignment.Left);
+                        lvAllProduct.Columns.Add("ชื่อสินค้า", 230, HorizontalAlignment.Left);
                         lvAllProduct.Columns.Add("ราคา", 70, HorizontalAlignment.Right);
                         lvAllProduct.Columns.Add("จำนวน", 70, HorizontalAlignment.Left);
                         lvAllProduct.Columns.Add("หน่วย", 70, HorizontalAlignment.Left);
-                        lvAllProduct.Columns.Add("สถานะ", 90, HorizontalAlignment.Left);
+                        lvAllProduct.Columns.Add("สถานะ", 80, HorizontalAlignment.Left);
 
                         foreach (DataRow dataRow in dataTable.Rows)
                         {
                             ListViewItem item = new ListViewItem();
                             Image proImage = null;
-                            if (dataRow["proImage"] != DBNull.Value) 
+
+                            if (dataRow["proImage"] != DBNull.Value)
                             {
                                 byte[] imgByte = (byte[])dataRow["proImage"];
                                 proImage = convertByteArrayToImage(imgByte);
+
+                                // เพิ่มรูปเข้า ImageList และเก็บ index
+                                lvAllProduct.SmallImageList.Images.Add(proImage);
+                                item.ImageIndex = lvAllProduct.SmallImageList.Images.Count - 1;
                             }
                             else
                             {
                                 item.ImageIndex = -1;
                             }
+
+                            // ต้องใส่ค่าแรกใน constructor ด้วย
                             item.SubItems.Add(dataRow["proId"].ToString());
                             item.SubItems.Add(dataRow["proName"].ToString());
                             item.SubItems.Add(dataRow["proPrice"].ToString());
@@ -114,6 +121,37 @@ namespace StoreProject
         {
             //ให้ไปดึงข้อมูลจาก product_tb มาแสดงที่ ListView
             getAllProductToLV();
+
+        }
+
+        private void btnFrmProductCreate_Click(object sender, EventArgs e)
+        {
+            //เปืด frm แบบ Dialog/popup
+            FrmProductCreate frmProductCreate = new FrmProductCreate();
+            //เปิดแบบ ปกติ
+            //frmProductCreate.Show();
+            //เปิดแบบ Dialog
+            frmProductCreate.ShowDialog();
+            getAllProductToLV();
+        }
+
+        private void lvAllProduct_ItemActivate(object sender, EventArgs e)
+        {
+            if (lvAllProduct.SelectedItems.Count > 0)
+            {
+                // สมมุติว่า proId อยู่ที่คอลัมน์ที่ 1 (index 1)
+                int proId = int.Parse(lvAllProduct.SelectedItems[0].SubItems[1].Text);
+
+                FrmProductUpDel frmProductUpDel = new FrmProductUpDel(proId);
+                frmProductUpDel.ShowDialog();
+
+                // รีเฟรชข้อมูลใหม่หลังจากปิดฟอร์ม
+                getAllProductToLV();
+            }
+            else
+            {
+                MessageBox.Show("กรุณาเลือกรายการสินค้าที่ต้องการ", "แจ้งเตือน", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
         }
     }
 }
